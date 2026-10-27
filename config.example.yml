@@ -1,0 +1,41 @@
+# Copy to config.yml (gitignored) and adjust. Values go through ${ENV}
+# expansion, so secrets can stay in environment variables.
+#
+# Each profile is one imgproxy deployment. key and salt are the hex strings
+# of IMGPROXY_KEY / IMGPROXY_SALT on that server. A profile whose key or salt
+# is empty is disabled at startup with a warning. Use insecure: true for a
+# server that does not verify signatures (IMGPROXY_KEY unset).
+listen: "127.0.0.1:8099"
+default_profile: production
+profiles:
+  production:
+    host: https://imgproxy.example.com
+    key: ${IMGPROXY_PROD_KEY}
+    salt: ${IMGPROXY_PROD_SALT}
+  staging:
+    host: https://imgproxy-staging.example.com
+    key: ${IMGPROXY_STAGING_KEY}
+    salt: ${IMGPROXY_STAGING_SALT}
+  local:
+    host: http://localhost:8080
+    insecure: true
+
+# Presets prefill the variant cards in one click. Fields: label, resize
+# (force | fit | fill | fill-down | auto, default force), width, height,
+# enlarge, extend, quality (1-100), max_kb, sharpen, extra (raw options).
+presets:
+  - name: IAB sizes
+    variants:
+      - {label: Medium rectangle, width: 300, height: 250, max_kb: 150}
+      - {label: Leaderboard, width: 728, height: 90, max_kb: 150}
+      - {label: Billboard, width: 970, height: 250, max_kb: 200, enlarge: true}
+  - name: Thumbnails
+    variants:
+      - {label: small, resize: fit, width: 320, height: 180, quality: 80}
+      - {label: medium, resize: fit, width: 640, height: 360, quality: 80}
+      - {label: large, resize: fit, width: 1280, height: 720, quality: 85, enlarge: true}
+  - name: Quality
+    variants:
+      - {label: q60, width: 1200, height: 630, quality: 60}
+      - {label: q75, width: 1200, height: 630, quality: 75}
+      - {label: q90, width: 1200, height: 630, quality: 90}
