@@ -1,0 +1,6 @@
+config.yml
+.imgproxy_keys
+bin/
+.DS_Store
+.playwright-mcp/
+.local/
