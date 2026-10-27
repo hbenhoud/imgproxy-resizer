@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ImgProxy Resizer</title>
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='9' width='26' height='14' rx='2' fill='%23e9b54d'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="9" width="26" height="14" rx="2"/></svg>
+    <span>ImgProxy Resizer</span>
+  </div>
+  <label class="profile">
+    <span class="sr-only">imgproxy environment</span>
+    <select id="profile">
+      {{range .Profiles}}<option value="{{.Name}}" data-host="{{.Host}}"{{if eq .Name $.Default}} selected{{end}}>{{.Name}}{{if .Insecure}} (unsigned){{end}}</option>{{end}}
+    </select>
+    <span id="profile-host" class="host"></span>
+  </label>
+</header>
+
+<div class="app">
+<aside class="panel">
+  <section class="block">
+    <h2>Source creative</h2>
+    <input id="source" type="url" placeholder="https://cdn.example.com/creative.png" spellcheck="false" autocomplete="off" aria-label="Source creative URL">
+    <p class="help">A public URL: imgproxy will download it.</p>
+    <div class="inline">
+      <label>Output
+        <select id="ext">
+          {{range .Extensions}}<option value="{{.}}">{{if .}}{{.}}{{else}}source format{{end}}</option>{{end}}
+        </select>
+      </label>
+      <label class="switch"><input id="preview" type="checkbox" checked><span>Show images</span></label>
+    </div>
+  </section>
+
+  <section class="block grow">
+    <div class="block-head">
+      <h2>Variants</h2>
+      {{if .Presets}}<div class="seg" role="group" aria-label="Prefill">
+        {{range $i, $p := .Presets}}<button type="button" data-preset="{{$i}}">{{$p.Name}}</button>{{end}}
+      </div>{{end}}
+    </div>
+    <ol id="variants" class="variants"></ol>
+    <button type="button" id="add" class="ghost add">Add a variant</button>
+  </section>
+
+  <template id="row-tpl">
+    <li class="variant">
+      <div class="v-head">
+        <input name="label" placeholder="Name" aria-label="Variant name">
+        <button type="button" class="icon remove" title="Remove" aria-label="Remove variant">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+        </button>
+      </div>
+      <div class="v-dims">
+        <input name="width" type="number" min="0" step="1" placeholder="W" aria-label="Width">
+        <span class="x">×</span>
+        <input name="height" type="number" min="0" step="1" placeholder="H" aria-label="Height">
+        <select name="resizeType" aria-label="Resize type">{{range .ResizeTypes}}<option value="{{.}}">{{.}}</option>{{end}}</select>
+      </div>
+      <div class="v-flags">
+        <label class="chip"><input name="enlarge" type="checkbox"><span>Enlarge</span></label>
+        <label class="chip"><input name="extend" type="checkbox"><span>Extend</span></label>
+      </div>
+      <div class="v-opts">
+        <label><span>Quality</span><input name="quality" type="number" min="1" max="100" step="1" placeholder="auto"></label>
+        <label><span>Max KB</span><input name="maxKB" type="number" min="0" step="1" placeholder="—"></label>
+        <label><span>Sharpen</span><input name="sharpen" type="number" min="0" step="0.1" placeholder="—"></label>
+      </div>
+      <input name="extra" class="v-extra" placeholder="raw options, e.g. bl:0.5/dpr:2" spellcheck="false" aria-label="Extra imgproxy options">
+      <p class="v-error" hidden></p>
+    </li>
+  </template>
+
+  <div class="panel-foot">
+    <button type="button" id="generate" class="primary">Generate URLs</button>
+    <p id="status" class="status" role="status"></p>
+  </div>
+</aside>
+
+<main class="bench">
+  <div id="empty" class="empty">
+    <div class="ratios" aria-hidden="true">
+      <span style="--w:164;--h:62"></span>
+      <span style="--w:164;--h:42"></span>
+      <span style="--w:70;--h:22"></span>
+    </div>
+    <p>Paste a creative URL, adjust the variants on the left, then generate. Images show up here at actual size so you can judge the result.</p>
+  </div>
+
+  <div id="results-wrap" hidden>
+    <div class="bench-bar">
+      <span id="bench-title"></span>
+      <div class="seg" role="group" aria-label="Display scale">
+        <button type="button" data-scale="1" class="on">Actual size</button>
+        <button type="button" data-scale="fit">Fit</button>
+      </div>
+    </div>
+    <div id="results" class="results"></div>
+    <section class="export">
+      <div class="block-head">
+        <h2>Export</h2>
+        <button type="button" id="copy-all" class="ghost">Copy export</button>
+      </div>
+      <textarea id="export" readonly rows="4" spellcheck="false" aria-label="Text export"></textarea>
+    </section>
+  </div>
+</main>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script id="presets" type="application/json">{{.PresetsJSON}}</script>
+<script src="/static/app.js"></script>
+</body>
+</html>
